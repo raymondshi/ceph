@@ -75,12 +75,10 @@ struct MDSCapGrant {
   MDSCapGrant() {}
 };
 
-class MDSAuthCaps
+struct MDSAuthCaps
 {
-protected:
   std::vector<MDSCapGrant> grants;
 
-public:
   MDSAuthCaps() {}
   MDSAuthCaps(const std::vector<MDSCapGrant> &grants_) : grants(grants_) {}
 

@@ -85,6 +85,12 @@ extern long g_num_inoa, g_num_dira, g_num_dna, g_num_capa;
 extern long g_num_inos, g_num_dirs, g_num_dns, g_num_caps;
 
 
+enum {
+  MAY_READ = 1,
+  MAY_WRITE = 2,
+  MAY_EXECUTE = 4
+};
+
 // CAPS
 
 inline string gcap_string(int cap)

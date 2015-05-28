@@ -2079,6 +2079,39 @@ void Server::handle_slave_auth_pin_ack(MDRequestRef& mdr, MMDSSlaveRequest *ack)
 // HELPERS
 
 
+/**
+ * check whether we are permitted to complete a request
+ *
+ * Check whether we have permission to perform the operation specified
+ * by mask on the given inode, based on the capability in the mdr's
+ * session.
+ */
+bool Server::check_access(MDRequestRef& mdr, CInode *in, unsigned mask)
+{
+  Session *s = mdr->session;
+
+  // FIXME: populate these with real values
+  string path;
+  int uid = mdr->client_request->get_caller_uid();
+
+  // simple read/write check
+  for (vector<MDSCapGrant>::iterator p = s->auth_caps.grants.begin();
+       p != s->auth_caps.grants.end();
+       ++p) {
+    if (p->match.match(path, uid)) {
+      if (p->spec.allows(mask & MAY_READ,
+			 mask & (MAY_WRITE|MAY_EXECUTE))) {
+	return true;
+      }
+    }
+  }
+
+  // we are not allowed.
+  respond_to_request(mdr, -EACCES);
+  return false;
+}
+
+
 /** validate_dentry_dir
  *
  * verify that the dir exists and would own the dname.
