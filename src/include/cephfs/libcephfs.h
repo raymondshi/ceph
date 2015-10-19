@@ -15,6 +15,7 @@
 #ifndef CEPH_LIB_H
 #define CEPH_LIB_H
 
+#include <features.h>
 #include <utime.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -24,7 +25,7 @@
 #include <stdbool.h>
 
 // FreeBSD compatibility
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 typedef off_t loff_t;
 typedef off_t off64_t;
 #endif
@@ -41,11 +42,10 @@ extern "C" {
 #define LIBCEPHFS_VERSION_CODE LIBCEPHFS_VERSION(LIBCEPHFS_VER_MAJOR, LIBCEPHFS_VER_MINOR, LIBCEPHFS_VER_EXTRA)
 
 /*
- * On FreeBSD and Apple the offset is 64 bit, but libc doesn't announce it in
- * the way glibc does.
+ * If using glibc check that file offset is 64-bit.
  */
-#if !defined(__FreeBSD__) && !defined(__APPLE__) && !defined(__USE_FILE_OFFSET64)
-# error libceph: must define __USE_FILE_OFFSET64 or readdir results will be corrupted
+#if defined(__GLIBC__) && !defined(__USE_FILE_OFFSET64)
+# error libceph: glibc must define __USE_FILE_OFFSET64 or readdir results will be corrupted
 #endif
 
 /*
@@ -800,6 +800,19 @@ int64_t ceph_lseek(struct ceph_mount_info *cmount, int fd, int64_t offset, int w
 int ceph_read(struct ceph_mount_info *cmount, int fd, char *buf, int64_t size, int64_t offset);
 
 /**
+ * Read data from the file.
+ * @param cmount the ceph mount handle to use for performing the read.
+ * @param fd the file descriptor of the open file to read from.
+ * @param iov the iov structure to read data into
+ * @param iovcnt the number of items that iov includes
+ * @param offset the offset in the file to read from.  If this value is negative, the
+ *        function reads from the current offset of the file descriptor.
+ * @returns the number of bytes read into buf, or a negative error code on failure.
+ */
+int ceph_preadv(struct ceph_mount_info *cmount, int fd, const struct iovec *iov, int iovcnt,
+           int64_t offset);
+
+/**
  * Write data to a file.
  *
  * @param cmount the ceph mount handle to use for performing the write.
@@ -812,6 +825,20 @@ int ceph_read(struct ceph_mount_info *cmount, int fd, char *buf, int64_t size, i
  */
 int ceph_write(struct ceph_mount_info *cmount, int fd, const char *buf, int64_t size,
 	       int64_t offset);
+
+/**
+ * Write data to a file.
+ *
+ * @param cmount the ceph mount handle to use for performing the write.
+ * @param fd the file descriptor of the open file to write to
+ * @param iov the iov structure to read data into
+ * @param iovcnt the number of items that iov includes
+ * @param offset the offset of the file write into.  If this value is negative, the
+ *        function writes to the current offset of the file descriptor.
+ * @returns the number of bytes written, or a negative error code
+ */
+int ceph_pwritev(struct ceph_mount_info *cmount, int fd, const struct iovec *iov, int iovcnt,
+           int64_t offset);
 
 /**
  * Truncate a file to the given size.

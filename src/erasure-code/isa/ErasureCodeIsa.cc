@@ -80,6 +80,7 @@ ErasureCodeIsa::init(ErasureCodeProfile &profile, ostream *ss)
   if (err)
     return err;
   prepare();
+  ErasureCode::init(profile, ss);
   return err;
 }
 
@@ -349,6 +350,7 @@ int ErasureCodeIsaDefault::parse(ErasureCodeProfile &profile,
   int err = ErasureCode::parse(profile, ss);
   err |= to_int("k", profile, &k, DEFAULT_K, ss);
   err |= to_int("m", profile, &m, DEFAULT_M, ss);
+  err |= sanity_check_k(k, ss);
 
   if (matrixtype == kVandermonde) {
     // these are verified safe values evaluated using the

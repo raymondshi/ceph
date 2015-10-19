@@ -73,7 +73,8 @@ libcommon_internal_la_SOURCES = \
 	common/module.c \
 	common/Readahead.cc \
 	common/Cycles.cc \
-	common/ContextCompletion.cc
+	common/ContextCompletion.cc \
+	common/TracepointProvider.cc
 
 libcommon_internal_la_SOURCES += \
 	common/blkdev.cc
@@ -132,10 +133,11 @@ noinst_HEADERS += \
 LIBCOMMON_DEPS += \
 	$(LIBERASURE_CODE) \
 	$(LIBMSG) $(LIBAUTH) \
-	$(LIBCRUSH) $(LIBJSON_SPIRIT) $(LIBLOG) $(LIBARCH)
+	$(LIBCRUSH) $(LIBJSON_SPIRIT) $(LIBLOG) $(LIBARCH) \
+	$(BOOST_RANDOM_LIBS)
 
 if LINUX
-LIBCOMMON_DEPS += -lrt
+LIBCOMMON_DEPS += -lrt -lblkid
 endif # LINUX
 
 libcommon_la_SOURCES = common/buffer.cc
@@ -233,7 +235,9 @@ noinst_HEADERS += \
 	common/Initialize.h \
 	common/ContextCompletion.h \
 	common/bit_vector.hpp \
-	common/SubProcess.h
+	common/SubProcess.h \
+	common/valgrind.h \
+	common/TracepointProvider.h
 
 if ENABLE_XIO
 noinst_HEADERS += \
